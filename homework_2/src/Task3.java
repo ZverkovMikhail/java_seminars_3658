@@ -19,10 +19,10 @@ import java.util.regex.Pattern;
  */
 public class Task3 {
     public static void run() {
-//        System.out.println(jsonParse(readFile("grades.json")));
-        jsonParse(readFile("grades.json"));
+        for (String line : gradesParse(readFile("grades.json"))) {
+            System.out.println(line);
+        }
     }
-
     public static String readFile(String name) {
         File file = Paths.get(name).toAbsolutePath().toFile();
 
@@ -40,35 +40,40 @@ public class Task3 {
         return text;
     }
 
-    public static String jsonParse(String jsonString) {
-//        String regex = "[\\{^\\}^\\s+^\\n^\"\\[\\]]";
-        String regex = "\\{[^\\}]*\\}";
-        String regexFirst = ".*?\"фамилия\":\"";
-        String[] ss = jsonString
-                .replaceAll(regex, "")
-                .split(",");
+    public static String[] gradesParse(String jsonString) {
+        Pattern gradePattern = Pattern.compile("\\{[^\\}]*\\}");
+        Pattern fieldPattern = Pattern.compile("\"(.+?)\":\"(.+?)\"+");
 
-//        for (String s : ss) {
-//            System.out.println("S = " + s);
-//        }
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(jsonString.substring(1, jsonString.length() - 1));
-        while (matcher.find()) {
-            String temp = matcher.group(0);
-            for (String s:temp.replaceAll("[\\{\\}\\s+\"]", "").split(",")) {
-                System.out.println(s);
+        Matcher grades = gradePattern.matcher(jsonString.replace(" ",""));
+        Matcher fieldsMatcher;
+
+        StringBuilder stringBuilder = new StringBuilder();
+        String lastName;
+        String grade;
+        String lesson;
+
+        while (grades.find()) {
+            fieldsMatcher = fieldPattern.matcher(grades.group());
+            lastName = "";
+            grade = "";
+            lesson = "";
+
+            while (fieldsMatcher.find()) {
+
+                switch (fieldsMatcher.group(1).toLowerCase()) {
+                    case "фамилия" -> lastName = fieldsMatcher.group(2);
+                    case "оценка" -> grade = fieldsMatcher.group(2);
+                    case "предмет" -> lesson = fieldsMatcher.group(2);
+                }
             }
-
-//            String[] ss = temp.substring(1, temp.length() - 1).split(",");
-//            System.out.println("=========");
-//            for (String s: ss) {
-//                System.out.println(s);
-//            }
+            stringBuilder
+                    .append("Студент ").append(lastName)
+                    .append(" получил ").append(grade)
+                    .append(" по предмету ").append(lesson)
+                    .append("\n");
         }
 
-//        for (String grade : s)
-
-        return jsonString;
+        return stringBuilder.toString().split("\n");
     }
 }
 
